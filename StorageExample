@@ -1,0 +1,38 @@
+#include <EEPROM.h>
+#include <nanosat_message.h>
+#include <SAT_Mag.h>
+#include <I2C_add.h>
+#include <stdio.h>
+#include <string.h>
+#include <Wire.h> 
+#include <OnboardCommLayer.h>
+#include <SAT_AppStorage.h>
+ 
+OnboardCommLayer ocl;
+SAT_AppStorage storage;
+SAT_Mag mag;
+ 
+void setup() {
+  Wire.begin();
+  mag.configMag();
+}
+ 
+#define MAX_BUFFER_SIZE 128
+ 
+char lineBuffer[MAX_BUFFER_SIZE];
+ 
+void loop() {
+  // assuming the magnetometer has already been calibrated..
+ 
+  // Put the magnetometer data into a CSV formatted buffer
+  int written = snprintf(lineBuffer, MAX_BUFFER_SIZE - 1, "%f,%f,%f\n", mag.readx(), mag.ready(), mag.readz());
+ 
+  // Make sure the buffer is null terminated
+  lineBuffer[written] = '\0';
+ 
+  // Append the data to your experiment's data file on the shared SD card
+  storage.send(lineBuffer);
+ 
+  // wait a second before the next iteration
+  delay(1000);
+}
